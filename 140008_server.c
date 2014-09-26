@@ -155,7 +155,8 @@ int main(int argc, char **argv) {
     if (n < 0) 
       error("ERROR reading from socket");
     printf("server received %d bytes: %s", n, buf);
-    
+    if (strcmp(buf, "hello\n") == 0)
+      printf("short message\n");    
     /* 
      * write: echo the input string back to the client 
      */
