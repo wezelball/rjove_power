@@ -64,9 +64,14 @@ int main(int argc, char **argv) {
   struct sockaddr_in clientaddr; /* client addr */
   struct hostent *hostp; /* client host info */
   char buf[BUFSIZE]; /* message buffer */
+  char input[BUFSIZE]; /*modifiable copy of buf*/
+  char* param[3]; /*holds seperated values*/
   char *hostaddrp; /* dotted decimal host addr string */
   int optval; /* flag value for setsockopt */
   int n; /* message byte size */
+  int command; /*command type for agv*/
+  int comaddr; /*addr for command to go*/
+  int comval; /*value of command*/
 
   /* 
    * check command line arguments 
@@ -151,12 +156,49 @@ int main(int argc, char **argv) {
      * read: read input string from the client
      */
     bzero(buf, BUFSIZE);
+    bzero(input, BUFSIZE);
     n = read(childfd, buf, BUFSIZE);
     if (n < 0) 
       error("ERROR reading from socket");
     printf("server received %d bytes: %s", n, buf);
-    if (strcmp(buf, "hello\n") == 0)
-      printf("short message\n");    
+    //for the future, strcmp(string, string) is useful for comparison
+    //between two strings. will return 0 if equal.
+    //while strtoken(char *str, const char *delim) is probably the
+    //most useful for parsing a string
+    param[0] = strtok(buf, "-");
+    param[1] = strtok(NULL, "-");
+    param[2] = strtok(NULL, "\0");
+    printf("%s:%s:%s\n", param[0], param[1], param[2]);
+    command = atoi(param[0]);
+    if(command == 1)
+      printf("Hello!");
+    else
+      printf("goodbye :(");
+    printf("hi! %d", command);
+    comaddr = atoi(param[1]);
+    comval = atoi(param[2]);
+    switch (command) {
+    case 1:
+      printf("hello!");
+      break;
+    case 2:
+      printf("DigitalRead");
+      break;
+    case 3:
+      printf("DigitalWrite");
+      break;
+    case 4:
+      printf("AnalogRead");
+      break;
+    case 5:
+      printf("AnalogWrite");
+      break;
+    case 6:
+      printf("pwmWrite");
+      break;
+    default:
+      printf("please input in int-int-int format");
+    }
     /* 
      * write: echo the input string back to the client 
      */
