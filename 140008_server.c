@@ -16,6 +16,10 @@
 #define BUFSIZE 1024
 #define MSGSIZE 32
 
+#ifdef __arm__
+	printf("Oh yes, it is, thank you!");
+#endif
+
 // we could use TRUE and FALSE
 typedef enum { false = 0, true = !false } bool;
 
