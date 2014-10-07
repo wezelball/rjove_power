@@ -66,6 +66,14 @@ int main(int argc, char **argv) {
 		printf("Please enter msg: ");
 		bzero(buf, BUFSIZE);
 		fgets(buf, BUFSIZE, stdin);
+
+		/*
+		 *Check to see if we're killing the client
+		 */
+		if(strcmp(buf, "999\n") == 0)
+		{
+		        cont = 1;
+                }
 	
 		/* send the message line to the server */
 		n = write(sockfd, buf, strlen(buf));
@@ -78,10 +86,6 @@ int main(int argc, char **argv) {
 		if (n < 0) 
 			error("ERROR reading from socket");
 		printf("Echo from server: %s", buf);
-		if(strcmp(buf, "close") == 0)
-		{
-			cont = 1;
-		}
 	}
 	close(sockfd);
     return 0;
