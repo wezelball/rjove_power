@@ -1,6 +1,6 @@
 /* 
- * tcpserver.c - A simple TCP echo server 
- * usage: tcpserver <port>
+ * 140008_server.c - A simple TCP echo server 
+ * usage: 140008_server <port>
  */
 
 #include <stdio.h>
@@ -14,6 +14,10 @@
 #include <arpa/inet.h>
 
 #define BUFSIZE 1024
+#define MSGSIZE 32
+
+// we could use TRUE and FALSE
+typedef enum { false = 0, true = !false } bool;
 
 #if 0
 /* 
@@ -72,6 +76,7 @@ int main(int argc, char **argv) {
 	int command; /*command type for agv*/
 	int comaddr; /*addr for command to go*/
 	int comval; /*value of command*/
+	char reply[MSGSIZE]; /*send reply to command*/
 
 	/* 
 	 * check command line arguments 
@@ -88,15 +93,6 @@ int main(int argc, char **argv) {
 	parentfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (parentfd < 0) 
 		error("ERROR opening socket");
-
-	/* setsockopt: Handy debugging trick that lets 
-	 * us rerun the server immediately after we kill it; 
-	 * otherwise we have to wait about 20 secs. 
-	 * Eliminates "ERROR on binding: Address already in use" error. 
-	 */
-	optval = 1;
-	setsockopt(parentfd, SOL_SOCKET, SO_REUSEADDR, 
-			 (const void *)&optval , sizeof(int));
 
 	/*
 	 * build the server's Internet address
@@ -119,6 +115,15 @@ int main(int argc, char **argv) {
 		sizeof(serveraddr)) < 0) 
 		error("ERROR on binding");
 
+	/* setsockopt: Handy debugging trick that lets 
+	 * us rerun the server immediately after we kill it; 
+	 * otherwise we have to wait about 20 secs. 
+	 * Eliminates "ERROR on binding: Address already in use" error. 
+	 */
+	optval = 1;
+	setsockopt(parentfd, SOL_SOCKET, SO_REUSEADDR, 
+			 (const void *)&optval , sizeof(int));
+
 	/* 
 	 * listen: make this socket ready to accept connection requests 
 	 */
@@ -131,7 +136,6 @@ int main(int argc, char **argv) {
 	 */
 	clientlen = sizeof(clientaddr);
 	while (1) {
-
 		/* 
 		 * accept: wait for a connection request 
 		 */
@@ -164,19 +168,47 @@ int main(int argc, char **argv) {
 		//between two strings. will return 0 if equal.
 		//while strtoken(char *str, const char *delim) is probably the
 		//most useful for parsing a string
-		param[0] = strtok(buf, "-");
-		param[1] = strtok(NULL, "-");
+		param[0] = strtok(buf, " ");
+		param[1] = strtok(NULL, " ");
 		param[2] = strtok(NULL, "\0");
-		printf("%s:%s:%s", param[0], param[1], param[2]);
+
+		// The command is always the first parameter
 		command = atoi(param[0]);
-		comaddr = atoi(param[1]);
-		comval = atoi(param[2]);
+		
+		/*
+		 * This code is here to insure that we react properly to the
+		 * number of bytes sent. If a variable assignment is made
+		 * using a nul pointer, the program will segfault
+		 */
+		 // do we have a 2nd parameter (address)
+		if (param[1] != NULL)	{	
+			comaddr = atoi(param[1]);
+		}
+		// do we have a 3rd parameter (value)
+		if (param[2] != NULL)	{
+			comval = atoi(param[2]);
+		}
+		
+		// Branch according to command number
 		switch (command) {
 		case 1:
-			printf("Flexicart S/N: 00 \nVersion 0.0.0\n");
+			strcpy(reply, "Flexicart S/N: 00 \nVersion 0.0.0\n");
 			break;
 		case 2:
-			printf("DigitalRead\n");
+			// Make sure user doesn't enter stupid values, but need
+			// to determine what values are considered stupid
+			if (comaddr < 0 || comaddr > 5)	{
+				perror("invalid address, dumbass!");
+				strcpy(reply, "false\n");
+				break;
+			}
+			if ((comval != 0) && (comval != 1))	{
+				perror("invalid value, idiothead!");
+				strcpy(reply, "false\n");
+				break;
+			}				
+			printf("DigitalRead: address: %d, value: %d \n", comaddr, comval);
+			strcpy(reply, "true\n");
 			break;
 		case 3:
 			printf("DigitalWrite\n");
@@ -190,13 +222,20 @@ int main(int argc, char **argv) {
 		case 6:
 			printf("pwmWrite\n");
 			break;
+		case 7:
+			printf("Beat\n");
+			break;
+		case 99:	// quit
+			return(0);
+			break;
 		default:
-			printf("please input in int-int-int format\n");
+			printf("Input in int-int-int format - wtf is wrong with you?\n");
 		}
+
 		/* 
-		 * write: echo the input string back to the client 
+		 * write: reply the message to the client 
 		 */
-		n = write(childfd, buf, strlen(buf));
+		n = write(childfd, reply, strlen(reply));
 		if (n < 0) 
 			error("ERROR writing to socket");
 

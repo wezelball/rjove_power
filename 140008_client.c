@@ -1,6 +1,6 @@
 /* 
- * tcpclient.c - A simple TCP client
- * usage: tcpclient <host> <port>
+ * 140008_client.c - A simple TCP client
+ * usage: 140008_client <host> <port>
  */
 #include <stdio.h>
 #include <stdlib.h>
