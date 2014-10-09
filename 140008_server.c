@@ -16,6 +16,7 @@
 /* Includes for RPi only*/
 #ifdef RPI
 	#include <wiringPi.h>
+	#include <softPwm.h>
 #endif
 
 #define BUFSIZE 1024
@@ -64,6 +65,33 @@ void error(char *msg) {
 	exit(1);
 }
 
+/* Abstracted I/O functions*/
+void bitWrite(int pin, int value)	{
+	#ifdef RPI
+		digitalWrite(pin, value);
+	#else
+		printf("Digital Write: pin: %d, value: %d\n", pin, value);
+	#endif
+} 
+
+int bitRead(int pin)	{
+	#ifdef RPI
+		return (digitalRead(pin);
+	#else
+		printf("Digital Read: pin: %d, value: unknown\n", pin);
+		return(0);
+	#endif
+}
+
+void PWMWrite(int pin, int value)	{
+	#ifdef RPI
+		softPWMWrite(pin, value);
+	#else
+		printf("PWM Write: pin: %d, value: %d\n", pin, value);
+	#endif
+}
+
+
 int main(int argc, char **argv) {
 	int parentfd; /* parent socket */
 	int childfd; /* child socket */
@@ -95,7 +123,8 @@ int main(int argc, char **argv) {
 	 * generic writePin readPin command 
 	 */
 	#ifdef RPI
-		pinMode(0, OUTPUT);
+		//pinMode(0, OUTPUT); 
+		//softPwmCreate (int pin, int initialValue, int pwmRange);
 	#endif
 
 	/* 
@@ -211,7 +240,9 @@ int main(int argc, char **argv) {
 		
 		// Branch according to command number
 		switch (command) {
-		case 1:
+		case 0: /* RPi pin test - */
+			break;
+		case 1: /* version */
 			strcpy(reply, "Flexicart S/N: 00 \nVersion 0.0.0\n");
 			break;
 		case 2:
@@ -227,22 +258,25 @@ int main(int argc, char **argv) {
 				strcpy(reply, "false\n");
 				break;
 			}
-			if (!I_AM_PI)	{ /* this is a simulated command */
-				printf("Simulated DigitalRead: address: %d, value: %d \n", comaddr, comval);
-				strcpy(reply, "true\n");
-			}
+			sprintf(reply, "%d", bitRead(comaddr));
 			break;
 		case 3:
 			printf("DigitalWrite\n");
+			bitWrite(comaddr, comval);
+			strcpy(reply, "true\n");
 			break;
 		case 4:
-			printf("AnalogRead\n");
+			printf("AnalogRead not supported\n");
+			strcpy(reply, "false\n");
 			break;
 		case 5:
-			printf("AnalogWrite\n");
+			printf("AnalogWrite not supported\n");
+			strcpy(reply, "false\n");
 			break;
 		case 6:
-			printf("pwmWrite\n");
+			/* This is the abstracted command */
+			PWMWrite(comaddr, comval);
+			strcpy(reply, "true\n");
 			break;
 		case 7:
 			printf("Beat\n");
