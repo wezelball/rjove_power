@@ -13,12 +13,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/* Includes for RPi only*/
+#ifdef RPI
+	#include <wiringPi.h>
+#endif
+
 #define BUFSIZE 1024
 #define MSGSIZE 32
-
-#ifdef __arm__
-	printf("Oh yes, it is, thank you!");
-#endif
 
 // we could use TRUE and FALSE
 typedef enum { false = 0, true = !false } bool;
@@ -81,6 +82,21 @@ int main(int argc, char **argv) {
 	int comaddr; /*addr for command to go*/
 	int comval; /*value of command*/
 	char reply[MSGSIZE]; /*send reply to command*/
+	bool I_AM_PI; /* true if raspberry pi */
+
+	/* Determine if I am a Raspberry Pi*/
+	#ifdef NOPI
+		I_AM_PI = false;
+	#endif
+
+	/* 
+	 * If this is a RPi, set up the gpio pins
+	 * This should be abstracted later to a 
+	 * generic writePin readPin command 
+	 */
+	#ifdef RPI
+		pinMode(0, OUTPUT);
+	#endif
 
 	/* 
 	 * check command line arguments 
@@ -210,9 +226,11 @@ int main(int argc, char **argv) {
 				perror("invalid value, idiothead!");
 				strcpy(reply, "false\n");
 				break;
-			}				
-			printf("DigitalRead: address: %d, value: %d \n", comaddr, comval);
-			strcpy(reply, "true\n");
+			}
+			if (!I_AM_PI)	{ /* this is a simulated command */
+				printf("Simulated DigitalRead: address: %d, value: %d \n", comaddr, comval);
+				strcpy(reply, "true\n");
+			}
 			break;
 		case 3:
 			printf("DigitalWrite\n");
