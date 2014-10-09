@@ -25,38 +25,6 @@
 // we could use TRUE and FALSE
 typedef enum { false = 0, true = !false } bool;
 
-#if 0
-/* 
- * Structs exported from in.h
- */
-
-/* Internet address */
-struct in_addr {
-	unsigned int s_addr; 
-};
-
-/* Internet style socket address */
-struct sockaddr_in  {
-	unsigned short int sin_family;	/* Address family */
-	unsigned short int sin_port;	/* Port number */
-	struct in_addr sin_addr;	/* IP address */
-	unsigned char sin_zero[...];	/* Pad to size of 'struct sockaddr' */
-};
-
-/*
- * Struct exported from netdb.h
- */
-
-/* Domain name service (DNS) host entry */
-struct hostent {
-	char	*h_name;	/* official name of host */
-	char	**h_aliases;	/* alias list */
-	int	h_addrtype;	/* host address type */
-	int	h_length;	/* length of address */
-	char	**h_addr_list;	/* list of addresses */
-}
-#endif
-
 /*
  * error - wrapper for perror
  */
@@ -167,7 +135,12 @@ int main(int argc, char **argv) {
 	/* setsockopt: Handy debugging trick that lets 
 	 * us rerun the server immediately after we kill it; 
 	 * otherwise we have to wait about 20 secs. 
-	 * Eliminates "ERROR on binding: Address already in use" error. 
+	 * Eliminates "ERROR on binding: Address already in use" error.
+	 * 
+	 * dcohen:
+	 * This problem has not been fully solved.  When server is
+	 * shut down, still need to wait TIME_WAIT seconds before
+	 * trying to reconnect, or same error will occur
 	 */
 	optval = 1;
 	setsockopt(parentfd, SOL_SOCKET, SO_REUSEADDR, 
