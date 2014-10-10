@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <time.h>
+#include "robotMap.h"
 
 /* Includes for RPi only*/
 #ifdef RPI
@@ -46,7 +47,7 @@ void bitWrite(int pin, int value)	{
 
 int bitRead(int pin)	{
 	#ifdef RPI
-		return (digitalRead(pin);
+		return (digitalRead(pin));
 	#else
 		printf("Digital Read: pin: %d, value: unknown\n", pin);
 		return(0);
@@ -55,7 +56,7 @@ int bitRead(int pin)	{
 
 void PWMWrite(int pin, int value)	{
 	#ifdef RPI
-		softPWMWrite(pin, value);
+		softPwmWrite(pin, value);
 	#else
 		printf("PWM Write: pin: %d, value: %d\n", pin, value);
 	#endif
@@ -92,8 +93,22 @@ int main(int argc, char **argv) {
 	 * generic writePin readPin command 
 	 */
 	#ifdef RPI
-		//pinMode(0, OUTPUT); 
-		//softPwmCreate (int pin, int initialValue, int pwmRange);
+		wiringPiSetup();
+		//pinMode(int pin, int output);
+		pinMode(D_FR_LT, OUTPUT);
+		pinMode(D_FR_RT, OUTPUT);
+		pinMode(D_RR_LT, OUTPUT);
+		pinMode(D_RR_RT, OUTPUT);
+		pinMode(CNVYR_DR, OUTPUT);
+		pinMode(MAG_SR_FT, OUTPUT);
+		pinMode(MAG_SR_RR, OUTPUT);
+		pinMode(MAG_SR_LT, OUTPUT);
+		pinMode(MAG_SR_RT, OUTPUT);
+		pinMode(BATT_CURR, OUTPUT);
+		pinMode(BATT_VOLT, OUTPUT);
+		pinMode(MAG_SLND, OUTPUT);
+		//softPwmCreate(int pin, int initialValue, int pwmRange); 
+		softPwmCreate (15, 0, 100);
 	#endif
 
 	/* 
@@ -217,6 +232,7 @@ int main(int argc, char **argv) {
 		switch (command) {
 		case 0: /* RPi pin test - */
 			strcpy(reply, "Command not supported\n");
+			
 			break;
 		case 1: /* version */
 			strcpy(reply, "Flexicart S/N: 00 \nVersion 0.0.0\n");

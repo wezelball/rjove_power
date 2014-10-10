@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include "robotMap.h"
 
 #define BUFSIZE 1024
 
