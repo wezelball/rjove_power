@@ -12,6 +12,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <time.h>
 
 /* Includes for RPi only*/
 #ifdef RPI
@@ -59,7 +61,6 @@ void PWMWrite(int pin, int value)	{
 	#endif
 }
 
-
 int main(int argc, char **argv) {
 	int parentfd; /* parent socket */
 	int childfd; /* child socket */
@@ -79,7 +80,7 @@ int main(int argc, char **argv) {
 	int comval; /*value of command*/
 	char reply[MSGSIZE]; /*send reply to command*/
 	bool I_AM_PI; /* true if raspberry pi */
-
+	
 	/* Determine if I am a Raspberry Pi*/
 	#ifdef NOPI
 		I_AM_PI = false;
@@ -157,6 +158,7 @@ int main(int argc, char **argv) {
 	 * then close connection.
 	 */
 	clientlen = sizeof(clientaddr);
+
 	while (1) {
 		/* 
 		 * accept: wait for a connection request 
@@ -214,6 +216,7 @@ int main(int argc, char **argv) {
 		// Branch according to command number
 		switch (command) {
 		case 0: /* RPi pin test - */
+			strcpy(reply, "Command not supported\n");
 			break;
 		case 1: /* version */
 			strcpy(reply, "Flexicart S/N: 00 \nVersion 0.0.0\n");
