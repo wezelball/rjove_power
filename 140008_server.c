@@ -54,12 +54,14 @@ int bitRead(int pin)	{
 	#endif
 }
 
-void PWMWrite(int pin, int value)	{
+int PWMWrite(int pin, int value)	{
+	int scaledValue = value/9 + 15;
 	#ifdef RPI
-		softPwmWrite(pin, value);
+		softPwmWrite(pin, scaledValue);
 	#else
-		printf("PWM Write: pin: %d, value: %d\n", pin, value);
+		printf("PWM Write: pin: %d, value: %d\n", pin, scaledValue);
 	#endif
+	return scaledValue;
 }
 
 int main(int argc, char **argv) {
@@ -108,7 +110,8 @@ int main(int argc, char **argv) {
 		pinMode(BATT_VOLT, OUTPUT);
 		pinMode(MAG_SLND, OUTPUT);
 		//softPwmCreate(int pin, int initialValue, int pwmRange); 
-		softPwmCreate (15, 0, 100);
+		softPwmCreate(15, 0, 100);
+		softPwmCreate(16, 0, 100);
 	#endif
 
 	/* 
@@ -232,7 +235,6 @@ int main(int argc, char **argv) {
 		switch (command) {
 		case 0: /* RPi pin test - */
 			strcpy(reply, "Command not supported\n");
-			
 			break;
 		case 1: /* version */
 			strcpy(reply, "Flexicart S/N: 00 \nVersion 0.0.0\n");
@@ -267,8 +269,14 @@ int main(int argc, char **argv) {
 			break;
 		case 6:
 			/* This is the abstracted command */
-			PWMWrite(comaddr, comval);
-			strcpy(reply, "true\n");
+			if(comval >= -100 && comval <= 100)
+			{
+				sprintf(reply, "%d\n", PWMWrite(comaddr, comval));
+			}
+			else
+			{
+				strcpy(reply, "false\n");
+			}
 			break;
 		case 7:
 			printf("Beat\n");
