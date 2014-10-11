@@ -64,6 +64,14 @@ int PWMWrite(int pin, int value)	{
 	return scaledValue;
 }
 
+PI_THREAD (myThread)	{
+	while(true)
+	{
+		sleep(1);
+		printf("Hello!\n");
+	}
+}
+
 int main(int argc, char **argv) {
 	int parentfd; /* parent socket */
 	int childfd; /* child socket */
@@ -112,6 +120,7 @@ int main(int argc, char **argv) {
 		//softPwmCreate(int pin, int initialValue, int pwmRange); 
 		softPwmCreate(15, 0, 100);
 		softPwmCreate(16, 0, 100);
+		piThreadCreate(myThread);
 	#endif
 
 	/* 
