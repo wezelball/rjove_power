@@ -33,6 +33,7 @@ import math
 import struct
 import threading
 from datetime import datetime
+import csv
 
 sys.stderr.write("Warning: this may have issues on some machines+Python version combinations to seg fault due to the callback in bin_statitics.\n\n")
 
@@ -127,8 +128,8 @@ class my_top_block(gr.top_block):
         (options, args) = parser.parse_args()
         if len(args) != 2:
             parser.print_help()
-            sys.exit(1)
-
+            sys.exit(1) 
+            
         self.channel_bandwidth = options.channel_bandwidth
 
         self.min_freq = eng_notation.str_to_num(args[0])
@@ -219,6 +220,14 @@ class my_top_block(gr.top_block):
 
         self.set_gain(options.gain)
         print "gain =", options.gain
+        
+
+        # Create a list that will hold a single row of the entire band
+        self.a_row = []
+        
+        # Open a CSV file for writing
+        f_handle = open("../output.csv", 'wt')
+        self.writer = csv.writer(f_handle, delimiter = ",")
 
     def set_next_freq(self):
         target_freq = self.next_freq
@@ -285,9 +294,32 @@ def main_loop(tb):
             #noise_floor_db = -174 + 10*math.log10(tb.channel_bandwidth)
             noise_floor_db = 10*math.log10(min(m.data)/tb.usrp_rate)
             power_db = 10*math.log10(m.data[i_bin]/tb.usrp_rate) - noise_floor_db
+            power_db = -1.0 * power_db	# make sute this works - dcohen
 
-            if (power_db > tb.squelch_threshold) and (freq >= tb.min_freq) and (freq <= tb.max_freq):
-                print datetime.now(), "center_freq", center_freq, "freq", freq, "power_db", power_db, "noise_floor_db", noise_floor_db
+            # There is no need for squelch as constant scanning is necessary
+            #if (power_db > tb.squelch_threshold) and (freq >= tb.min_freq) and (freq <= tb.max_freq):
+            # Let's keep the old print statement around for now, it's useful information
+            #print datetime.now(), "center_freq", center_freq, "freq", freq, "power_db", power_db, "noise_floor_db", noise_floor_db
+            
+            # Write output to CSV file
+            # Note that tb is an instance of my_top_block
+            if freq == tb.min_freq:
+                lowfreq = int(freq)
+                highfreq = int(tb.channel_bandwidth * tb.fft_size + lowfreq) # This should be right, but it is not
+                tb.a_row.append(datetime.now().strftime("%Y-%m-%d"))
+                tb.a_row.append(datetime.now().strftime("%H:%M:%S"))
+                tb.a_row.append(lowfreq)
+                tb.a_row.append(highfreq)
+                tb.a_row.append(tb.channel_bandwidth)
+                tb.a_row.append(tb.fft_size)
+                tb.a_row.append(round(power_db,2))
+            elif freq < tb.max_freq and i_bin <> bin_stop:
+                tb.a_row.append(round(power_db,2))
+            elif freq >= tb.max_freq and i_bin == bin_stop-1 :
+                tb.writer.writerow(tb.a_row)
+                del tb.a_row[:]
+                     
+            #tb.writer.writerow(((datetime.now().strftime("%y:%m:%d")), (datetime.now().strftime("%H:%H:%S")), i_bin, int(freq), round(power_db,2)))
 
 if __name__ == '__main__':
     t = ThreadClass()
