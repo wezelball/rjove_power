@@ -32,7 +32,7 @@ import sys
 import math
 import struct
 import threading
-from datetime import datetime
+import datetime
 import csv
 import time
 
@@ -109,13 +109,19 @@ class my_top_block(gr.top_block):
                           help="Set sample rate (bandwidth), minimum by default")
         parser.add_option("-g", "--gain", type="eng_float", default=None,
                           help="Set gain in dB (default is midpoint)")
+        parser.add_option("", "--tune-delay", type="eng_float",
+                          default=0.25, metavar="SECS",
+                          help="Time to delay (in seconds) after changing frequency [default=%default]")
+        parser.add_option("", "--dwell-delay", type="eng_float",
+                          default=0.25, metavar="SECS",
+                          help="Time to dwell (in seconds) at a given frequency [default=%default]")
         parser.add_option("-b", "--channel-bandwidth", type="eng_float",
                           default=6.25e3, metavar="Hz",
                           help="Channel bandwidth of fft bins in Hz [default=%default]")
         parser.add_option("-F", "--fft-size", type="int", default=None,
                           help="Specify number of FFT bins [default=samp_rate/channel_bw]")
-        parser.add_option("-t", "--time", type="int", default=10,
-                          help="Specify size minutes of each block write [default=%default]")
+        parser.add_option("-t", "--time", type="int", default=300,
+                          help="Specify size in seconds of each block write [default=%default]")
         parser.add_option("", "--real-time", action="store_true", default=False,
                           help="Attempt to enable real-time scheduling")
 
@@ -126,9 +132,13 @@ class my_top_block(gr.top_block):
             
         self.channel_bandwidth = options.channel_bandwidth
 
-        # This is the block time
-        self.blocktime = options.time
+        # This is the block time - the length of each recording period
+        blockseconds = options.time
+        # now convert to a timedelta
+        self.blockTime = datetime.timedelta(seconds=blockseconds)
         
+        # First scan bit to know program just started
+        self.firstScan = True
 
         self.min_freq = eng_notation.str_to_num(args[0])
         self.max_freq = eng_notation.str_to_num(args[1])
@@ -221,10 +231,6 @@ class my_top_block(gr.top_block):
         # Create a list that will hold a single row of the entire band
         self.a_row = []
         
-        # Open a CSV file for writing
-        f_handle = open("../output.csv", 'wt')
-        self.writer = csv.writer(f_handle, delimiter = ",")
-
     def set_next_freq(self):
         target_freq = self.next_freq
         self.next_freq = self.next_freq + self.freq_step
@@ -283,6 +289,24 @@ def main_loop(tb):
         # m.raw_data is a string that contains the binary floats.
         # You could write this as binary to a file.
 
+        
+        
+        # Initialize the start time of the sampling for now()
+        if tb.firstScan == True or deltaTime > tb.blockTime:
+            startTime = datetime.datetime.utcnow()
+            tb.firstScan = False
+            fileName = "data/" + str(datetime.datetime.utcnow().strftime("%Y%m%d")) + str(datetime.datetime.utcnow().strftime("%H%M%S")) + ".csv"
+            # Open a CSV file for writing
+            f_handle = open(fileName, 'wt')
+            writer = csv.writer(f_handle, delimiter = ",")
+            #if tb.firstScan == False:
+            #    f_handle.close()
+        
+        # Update the current time
+        currentTime = datetime.datetime.utcnow()
+        # Compute the elapsed time
+        deltaTime = currentTime - startTime
+            
         for i_bin in range(bin_start, bin_stop):
 
             center_freq = m.center_freq
@@ -303,9 +327,9 @@ def main_loop(tb):
                 lowfreq = int(freq)
                 highfreq = int(tb.channel_bandwidth * tb.fft_size + lowfreq)	# This should be right, but it is not
                 # The current UTC date
-                tb.a_row.append(datetime.utcnow().strftime("%Y-%m-%d"))
+                tb.a_row.append(datetime.datetime.utcnow().strftime("%Y-%m-%d"))
                 # The current UTC time
-                tb.a_row.append(datetime.utcnow().strftime("%H:%M:%S"))
+                tb.a_row.append(datetime.datetime.utcnow().strftime("%H:%M:%S"))
                 # The low frequency limit of the scan
                 tb.a_row.append(lowfreq)
                 # The high frequency limit of the scan
@@ -319,8 +343,9 @@ def main_loop(tb):
             elif freq < tb.max_freq and i_bin <> bin_stop:	# in between the start and end of a row
                 tb.a_row.append(round(power_db,2))
             elif freq >= tb.max_freq and i_bin == bin_stop-1:	# the last sample of a row
-                tb.writer.writerow(tb.a_row)
+                writer.writerow(tb.a_row)
                 del tb.a_row[:]
+                print "Wrote line %s" %currentTime
                 time.sleep(0.1)
 
 if __name__ == '__main__':

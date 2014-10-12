@@ -20,9 +20,16 @@ CURRENT STATUS 2014-10-12
 A couple of hours of work has produced output that can be read by heatmap.py.  
 The uppper frequency limit may be a little off, but the output looks good.
 
-There is a problem where the C++ callback crashes the python program, and
-thereby loses control of the process.  I have to kill the PID to get it
-to stop.
+Time-stamped files are now creted
 
-I have note tested frequency ranges that exceed the bandwidth of the
+Fixed problem where C++ callback crashes python program.
+
+Uses UTC time-stamped files of length determined by user.
+
+ISSUES
+Occasionally, HackRF seems to hang, and file writing stops.  No change in
+output seen on application.  I have to kill process and reboot HackRF to
+recover.
+
+I have not tested frequency ranges that exceed the bandwidth of the
 SDR.
