@@ -23,3 +23,6 @@ The uppper frequency limit may be a little off, but the output looks good.
 There is a problem where the C++ callback crashes the python program, and
 thereby loses control of the process.  I have to kill the PID to get it
 to stop.
+
+I have note tested frequency ranges that exceed the bandwidth of the
+SDR.

@@ -34,6 +34,7 @@ import struct
 import threading
 from datetime import datetime
 import csv
+import time
 
 sys.stderr.write("Warning: this may have issues on some machines+Python version combinations to seg fault due to the callback in bin_statitics.\n\n")
 
@@ -108,20 +109,13 @@ class my_top_block(gr.top_block):
                           help="Set sample rate (bandwidth), minimum by default")
         parser.add_option("-g", "--gain", type="eng_float", default=None,
                           help="Set gain in dB (default is midpoint)")
-        parser.add_option("", "--tune-delay", type="eng_float",
-                          default=0.25, metavar="SECS",
-                          help="Time to delay (in seconds) after changing frequency [default=%default]")
-        parser.add_option("", "--dwell-delay", type="eng_float",
-                          default=0.25, metavar="SECS",
-                          help="Time to dwell (in seconds) at a given frequency [default=%default]")
         parser.add_option("-b", "--channel-bandwidth", type="eng_float",
                           default=6.25e3, metavar="Hz",
                           help="Channel bandwidth of fft bins in Hz [default=%default]")
-        parser.add_option("-q", "--squelch-threshold", type="eng_float",
-                          default=None, metavar="dB",
-                          help="Squelch threshold in dB [default=%default]")
         parser.add_option("-F", "--fft-size", type="int", default=None,
                           help="Specify number of FFT bins [default=samp_rate/channel_bw]")
+        parser.add_option("-t", "--time", type="int", default=10,
+                          help="Specify size minutes of each block write [default=%default]")
         parser.add_option("", "--real-time", action="store_true", default=False,
                           help="Attempt to enable real-time scheduling")
 
@@ -131,6 +125,10 @@ class my_top_block(gr.top_block):
             sys.exit(1) 
             
         self.channel_bandwidth = options.channel_bandwidth
+
+        # This is the block time
+        self.blocktime = options.time
+        
 
         self.min_freq = eng_notation.str_to_num(args[0])
         self.max_freq = eng_notation.str_to_num(args[1])
@@ -173,8 +171,6 @@ class my_top_block(gr.top_block):
             self.fft_size = int(self.usrp_rate/self.channel_bandwidth)
         else:
             self.fft_size = options.fft_size
-        
-        self.squelch_threshold = options.squelch_threshold
         
         s2v = blocks.stream_to_vector(gr.sizeof_gr_complex, self.fft_size)
 
@@ -303,23 +299,29 @@ def main_loop(tb):
             
             # Write output to CSV file
             # Note that tb is an instance of my_top_block
-            if freq == tb.min_freq:
+            if freq == tb.min_freq:	# the start of a row
                 lowfreq = int(freq)
-                highfreq = int(tb.channel_bandwidth * tb.fft_size + lowfreq) # This should be right, but it is not
-                tb.a_row.append(datetime.now().strftime("%Y-%m-%d"))
-                tb.a_row.append(datetime.now().strftime("%H:%M:%S"))
+                highfreq = int(tb.channel_bandwidth * tb.fft_size + lowfreq)	# This should be right, but it is not
+                # The current UTC date
+                tb.a_row.append(datetime.utcnow().strftime("%Y-%m-%d"))
+                # The current UTC time
+                tb.a_row.append(datetime.utcnow().strftime("%H:%M:%S"))
+                # The low frequency limit of the scan
                 tb.a_row.append(lowfreq)
+                # The high frequency limit of the scan
                 tb.a_row.append(highfreq)
+                # the bin size in hz
                 tb.a_row.append(tb.channel_bandwidth)
+                # The number of bins - name is confusing
                 tb.a_row.append(tb.fft_size)
+                # The power output in dB - how does this work?
                 tb.a_row.append(round(power_db,2))
-            elif freq < tb.max_freq and i_bin <> bin_stop:
+            elif freq < tb.max_freq and i_bin <> bin_stop:	# in between the start and end of a row
                 tb.a_row.append(round(power_db,2))
-            elif freq >= tb.max_freq and i_bin == bin_stop-1 :
+            elif freq >= tb.max_freq and i_bin == bin_stop-1:	# the last sample of a row
                 tb.writer.writerow(tb.a_row)
                 del tb.a_row[:]
-                     
-            #tb.writer.writerow(((datetime.now().strftime("%y:%m:%d")), (datetime.now().strftime("%H:%H:%S")), i_bin, int(freq), round(power_db,2)))
+                time.sleep(0.1)
 
 if __name__ == '__main__':
     t = ThreadClass()
