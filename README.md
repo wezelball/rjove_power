@@ -26,6 +26,12 @@ Fixed problem where C++ callback crashes python program.
 
 Uses UTC time-stamped files of length determined by user.
 
+10/13/14
+I'm not able to fix the USB/HackRf hangup issues.  I will make one last
+attempt by using a short USB cable, but I am already lookiing at an
+alternative of hacking hackrf_transfer.c and getting that to work by
+tranferring a line to a file (or buffer) and handing off to Python.
+
 ISSUES
 Occasionally, HackRF seems to hang, and file writing stops.  No change in
 output seen on application.  I have to kill process and reboot HackRF to
@@ -33,3 +39,5 @@ recover.
 
 I have not tested frequency ranges that exceed the bandwidth of the
 SDR.
+
+
