@@ -36,6 +36,13 @@ void error(char *msg) {
 	exit(1);
 }
 
+/* Global variables for thread and control loop use only */
+clock_t startClock, finishClock; // for checking elapsed time
+double elapsedTime; 	// time in seconds for master clock
+bool timing = false;	// timimg flag 
+float loopTime = 0.050;	// Control loop time
+int i_thread = 0;	// test variable
+
 /* Abstracted I/O functions*/
 void bitWrite(int pin, int value)	{
 	#ifdef RPI
@@ -64,12 +71,35 @@ int PWMWrite(int pin, int value)	{
 	return scaledValue;
 }
 
+/*
+* This is where the timing loop for the master clock is generated
+* it currently calls one control loop, but could be 
+* extended in the future
+*/
 PI_THREAD (myThread)	{
 	while(true)
 	{
-		sleep(1);
-		printf("Hello!\n");
+		if (timing == false){
+			startClock = clock();
+			timing = true;
+		}
+		finishClock = clock();
+		elapsedTime = ((double)(finishClock - startClock)/CLOCKS_PER_SEC);
+		if (elapsedTime >= loopTime) {
+			//printf("%f\n", elapsedTime);
+			loopTimerCallback();
+			timing = false;
+		}
 	}
+}
+
+/*
+* This is where the control loops go - this is called by
+* myThread, 
+*/
+void loopTimerCallback(void)
+{
+	
 }
 
 int main(int argc, char **argv) {
@@ -108,8 +138,8 @@ int main(int argc, char **argv) {
 		pinMode(D_FR_LT, OUTPUT);
 		pinMode(D_FR_RT, OUTPUT);
 		pinMode(D_RR_LT, OUTPUT);
-		pinMode(D_RR_RT, OUTPUT);
-		pinMode(CNVYR_DR, OUTPUT);
+		//pinMode(D_RR_RT, OUTPUT);
+		//pinMode(CNVYR_DR, OUTPUT);
 		pinMode(MAG_SR_FT, OUTPUT);
 		pinMode(MAG_SR_RR, OUTPUT);
 		pinMode(MAG_SR_LT, OUTPUT);
@@ -118,8 +148,8 @@ int main(int argc, char **argv) {
 		pinMode(BATT_VOLT, OUTPUT);
 		pinMode(MAG_SLND, OUTPUT);
 		//softPwmCreate(int pin, int initialValue, int pwmRange); 
-		softPwmCreate(15, 0, 100);
-		softPwmCreate(16, 0, 100);
+		softPwmCreate(15, 0, 100); // LED test light
+		softPwmCreate(16, 0, 100); // jumped for oscope
 		piThreadCreate(myThread);
 	#endif
 
