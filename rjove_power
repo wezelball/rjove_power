@@ -120,7 +120,7 @@ class my_top_block(gr.top_block):
                           help="Channel bandwidth of fft bins in Hz [default=%default]")
         parser.add_option("-F", "--fft-size", type="int", default=None,
                           help="Specify number of FFT bins [default=samp_rate/channel_bw]")
-        parser.add_option("-t", "--time", type="int", default=300,
+        parser.add_option("-t", "--time", type="int", default=600,
                           help="Specify size in seconds of each block write [default=%default]")
         parser.add_option("", "--real-time", action="store_true", default=False,
                           help="Attempt to enable real-time scheduling")
@@ -299,8 +299,7 @@ def main_loop(tb):
             # Open a CSV file for writing
             f_handle = open(fileName, 'wt')
             writer = csv.writer(f_handle, delimiter = ",")
-            #if tb.firstScan == False:
-            #    f_handle.close()
+            print "Opened new file %s" %fileName
         
         # Update the current time
         currentTime = datetime.datetime.utcnow()
@@ -345,8 +344,8 @@ def main_loop(tb):
             elif freq >= tb.max_freq and i_bin == bin_stop-1:	# the last sample of a row
                 writer.writerow(tb.a_row)
                 del tb.a_row[:]
-                print "Wrote line %s" %currentTime
-                time.sleep(0.1)
+                print "Write line at %s seconds of %s" %(deltaTime.seconds, tb.blockTime)
+                time.sleep(0.2)
 
 if __name__ == '__main__':
     t = ThreadClass()
