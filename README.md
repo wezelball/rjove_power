@@ -26,7 +26,8 @@ Fixed problem where C++ callback crashes python program.
 
 Uses UTC time-stamped files of length determined by user.
 
-CURRENT STATUS 2014-10-12
+
+CURRENT STATUS 2014-10-13
 I found out the problem with the HackRF hang - my cable. I've been testing
 with a really short USB cable with very good results so far. I'm using a 
 dummy load as an antenna, with very good results.
@@ -42,5 +43,5 @@ telescope.
 Test frequency ranges that exceed the bandwidth of the SDR, as a lowwer
 priority.
 
-ISSUES
 
+ISSUES
