@@ -32,6 +32,13 @@ attempt by using a short USB cable, but I am already lookiing at an
 alternative of hacking hackrf_transfer.c and getting that to work by
 tranferring a line to a file (or buffer) and handing off to Python.
 
+Note:
+There's an excellent guide on reading IQ data from HackRF into
+baudline:
+
+http://blog.kismetwireless.net/2013/08/playing-with-hackrf-keyfobs.html
+
+
 ISSUES
 Occasionally, HackRF seems to hang, and file writing stops.  No change in
 output seen on application.  I have to kill process and reboot HackRF to

@@ -18,8 +18,10 @@ long_line_column=72
 
 [files]
 current_page=0
-FILE_NAME_0=1706;C;0;16;1;1;0;/home/dcohen/Documents/devel/gnuradio/radio_jove/rjove_power/rj_hackrf.c;0;4
+FILE_NAME_0=22592;C;0;16;1;1;0;/home/dcohen/Documents/devel/gnuradio/radio_jove/rjove_power/rj_hackrf.c;0;4
 FILE_NAME_1=181;Make;0;16;1;1;0;/home/dcohen/Documents/devel/gnuradio/radio_jove/rjove_power/Makefile;0;4
+FILE_NAME_2=1469;Markdown;0;16;1;1;0;/home/dcohen/Documents/devel/gnuradio/radio_jove/rjove_power/README.md;0;4
+FILE_NAME_3=0;C;0;16;1;1;0;/usr/local/include/libhackrf/hackrf.h;0;4
 
 [VTE]
 last_dir=/home/dcohen
