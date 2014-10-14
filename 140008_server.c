@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <time.h>
 #include "robotMap.h"
+#include "140008lib.h"
 
 /* Includes for RPi only*/
 #ifdef RPI
@@ -24,9 +25,6 @@
 
 #define BUFSIZE 1024
 #define MSGSIZE 32
-
-// we could use TRUE and FALSE
-typedef enum { false = 0, true = !false } bool;
 
 /*
  * error - wrapper for perror
@@ -39,7 +37,7 @@ void error(char *msg) {
 /* Global variables for thread and control loop use only */
 clock_t startClock, finishClock; // for checking elapsed time
 double elapsedTime; 	// time in seconds for master clock
-bool timing = false;	// timimg flag 
+bool timing = false;	// timing flag 
 float loopTime = 0.050;	// Control loop time
 int i_thread = 0;	// test variable
 
@@ -97,10 +95,10 @@ PI_THREAD (myThread)	{
 * This is where the control loops go - this is called by
 * myThread, 
 */
-void loopTimerCallback(void)
+/*void loopTimerCallback(void)
 {
 	
-}
+}*/
 
 int main(int argc, char **argv) {
 	int parentfd; /* parent socket */
