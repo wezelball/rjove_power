@@ -6,11 +6,11 @@
 # subtraction, etc
 
 # imports
-import csv
+#import csv
 import numpy as np
 import pylab as plt
 import datetime
-from matplotlib.dates import datestr2num
+import matplotlib.dates as mdates
 
 
 # globals
@@ -48,10 +48,17 @@ f.close()
 
 # Load the data array from the 6th column to the last column
 data = np.loadtxt(fileName, delimiter=',', usecols=range(6,ncols))
-# Load the values array from the 0th column to the 5th column
-#timeValues = np.loadtxt(fileName, converters={0:lambda s:datestr2um(s)}, delimiter=',', usecols=range(0,1))
 
-# Determine the size of the array 
+# Load the time values array from the 0th column to the 5th column
+# I've been banging my damn head against the wall trying to figure
+# out how to assign datatime to the first two columns, but i'll 
+# just get it into the array as a string and sort it out later 
+timeMarkers = np.genfromtxt(fileName, dtype = None, delimiter=',', usecols=range(0,1))
+
+# Get the numeric markers from the file
+freqMarkers = np.genfromtxt(fileName, dtype = None, delimiter=',', usecols=range(2,6))
+
+# Determine the size of the data array 
 numrows, numcols = getShape(data)
 
 # Determine the max and min values of the array
