@@ -11,11 +11,22 @@ import numpy as np
 import pylab as plt
 import datetime
 import matplotlib.dates as mdates
+import Tkinter, tkFileDialog
+from matplotlib.widgets import Slider, Button, RadioButtons
 
+# For matplotlib widgets 
+fig, ax = plt.subplots()
+plt.subplots_adjust(left=0.25, bottom=0.25)
+
+
+# This sets up for a cute little single file selector widget
+root = Tkinter.Tk()
+root.withdraw()
 
 # globals
-fileName = "data/testdata.csv"
-
+#fileName = "data/testdata.csv"
+# Filename selected by file dialog
+fileName = tkFileDialog.askopenfilename()
 
 def plotData(data, dbmin, dbmax):
     """
@@ -71,4 +82,4 @@ print "Maximum db value: %f" %db_max
 print "Minimum db value: %f" %db_min
 
 plotData(data, -8, 0)
-#plotData(db_min, db_max)
+#plotData(data, db_min, db_max)

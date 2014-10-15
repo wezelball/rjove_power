@@ -31,6 +31,9 @@ I found out the problem with the HackRF hang - my cable. I've been testing
 with a really short USB cable with very good results so far. I'm using a 
 dummy load as an antenna, with very good results.
 
+I also tested with a 6-foot cable with no problems. The cable that was giving
+me isssues was a 20ft "amplified" USB cable.
+
 TODO
 Write external application to average "dark frames", and subtract them from
 actual data.  So take several CSV files recorded usign a dummy load and

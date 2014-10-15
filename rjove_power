@@ -223,6 +223,8 @@ class my_top_block(gr.top_block):
             # if no gain was specified, use the mid-point in dB
             g = self.u.get_gain_range()
             options.gain = float(g.start()+g.stop())/2.0
+            # Boost the gain a little
+            #options.gain += 3.0 # add 3dB
 
         self.set_gain(options.gain)
         print "gain =", options.gain
